@@ -21,20 +21,32 @@ class ViewController: UIViewController {
         
         descriptionLabel.text = ""
         CopyrightLabel.text = ""
-        
+        //update descriptionLabel and copyrightLabel
         photoInfoController.fetchPhotoInfo { (photoInfo) in
             if let photoInfo = photoInfo {
-                DispatchQueue.main.async {
-                    self.title = photoInfo.title
-                    self.descriptionLabel.text = photoInfo.description
-                    if let copyright = photoInfo.copyright {
-                        self.CopyrightLabel.text = "Copyright \(copyright)"
-                    } else {
-                        self.CopyrightLabel.isHidden = true
-                    }
-                }
+                self.updateUI(with: photoInfo)
                 
             }
         }
      }
+    
+    func updateUI(with photoInfo: PhotoInfo) {
+        let task = URLSession.shared.dataTask(with: photoInfo.url, completionHandler: { (data, response, error) in
+            if let data = data,
+                let image = UIImage(data: data){
+                DispatchQueue.main.async {
+                    self.title = photoInfo.title
+                    self.photoFromAPOD.image = image
+                    self.descriptionLabel.text = photoInfo.description
+                    
+                    if let copyright = photoInfo.copyright {
+                        self.CopyrightLabel.text = "Copyright: \(copyright)"
+                    } else {
+                        self.CopyrightLabel.isHidden = true
+                    }
+                }
+            }
+        })
+        task.resume()
+    }
 }
